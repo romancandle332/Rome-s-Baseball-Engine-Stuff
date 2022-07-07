@@ -1,14 +1,14 @@
 import math
 import random
 
-def SkillConvert(skill_input,metric): ##Converts player attributes into different values
+def SkillConvert(x,metric): ##Converts player attributes into different values
     skill_input = round((x - 12.5)/2.5,3)
     if metric == 0: ##Meter Value, like Pitch Control in baseball games
-        output = max(min(random.gauss(50 + skill_input * 12.5,25),100),0)
+        output = round(random.gauss(50 + skill_input * 12.5,6.25))
     return output
 
 class Pitch:
-    def __init__(self,a,b,c,d,e,f,g):
+    def __init__(self,a,b,c,d,e,f,g,h):
         self.name = a
         self.group = b
         self.mph_avg = c
@@ -16,25 +16,26 @@ class Pitch:
         self.whiff_avg = e
         self.whiff_dev = f
         self.movement = g ##movement is listed as positive = down and right from a RHP as viewed by the batter/catcher
+        self.break_direction = h ##0 glove side, 1 arm side
 
-FSM = Pitch("4-Seam Fastball","Fastball",93.51,2.27,0.211,0.053,[-2,-2])
-CUT = Pitch("Cut Fastball","Fastball",88.55,2.53,0.251,0.075,[-1,1])
-TSM = Pitch("2-Seam Fastball","Fastball",88.55,2.53,0.251,0.075,[-1,-4])
-SPT = Pitch("Split-Finger Fastball","Fastball",85.78,2.30,0.375,0.71,[3,0])
-SNK = Pitch("Sinking Fastball","Fastball",92.56,2.55,0.148,0.040,[1,1])
-CHN = Pitch("Change-Up","Offspeed",84.58,2.93,0.305,0.066,[0,-2])
-CIR = Pitch("Circle Change","Offspeed",80.58,2.93,0.305,0.66,[1,-2])
-PLM = Pitch("Palmball","Offspeed",78.58,2.93,0.305,0.066,[2,-1])
-EPH = Pitch("Eephus","Offspeed",65.18,3.85,0.242,0.104,[-1,-1])
-GYR = Pitch("Gyro Bullet","Offspeed",82.58,3.43,0.211,0.111,[0,0])
-SLD = Pitch("Slider","Breaking",84.65,2.89,0.357,0.76,[1,5])
-CRV = Pitch("Curveball","Breaking",78.72,3.28,0.320,0.075,[6,2])
-TSC = Pitch("12-6 Curveball","Breaking",75.72,3.28,0.320,0.075,[7,0])
-SLV = Pitch("Slurve","Breaking",70.60,4.16,0.261,0.069,[4,4])
-SCR = Pitch("Screwball","Breaking",73.41,4.18,0.371,0.091,[6,-2])
-FOR = Pitch("Forkball","Breaking",82.48,3.41,0.287,0.097,[4,0])
-KCV = Pitch("Knuckle-Curve","Breaking",79.64,2.98,0.297,0.110,[4,1])
-KNB = Pitch("Knuckleball","Breaking",71.92,4.22,0.223,0.028,[0,0])
+FSM = Pitch("4-Seam Fastball","Fastball",93.51,2.27,0.211,0.053,[-2,-2],1)
+CUT = Pitch("Cut Fastball","Fastball",88.55,2.53,0.251,0.075,[-1,1],0)
+TSM = Pitch("2-Seam Fastball","Fastball",88.55,2.53,0.251,0.075,[-1,-4],1)
+SPT = Pitch("Split-Finger Fastball","Fastball",85.78,2.30,0.375,0.71,[3,0],0)
+SNK = Pitch("Sinking Fastball","Fastball",92.56,2.55,0.148,0.040,[1,1],0)
+CHN = Pitch("Change-Up","Offspeed",84.58,2.93,0.305,0.066,[0,-2],1)
+CIR = Pitch("Circle Change","Offspeed",80.58,2.93,0.305,0.66,[1,-2],1)
+PLM = Pitch("Palmball","Offspeed",78.58,2.93,0.305,0.066,[2,-1],1)
+EPH = Pitch("Eephus","Offspeed",65.18,3.85,0.242,0.104,[-1,-1],1)
+GYR = Pitch("Gyro Bullet","Offspeed",82.58,3.43,0.211,0.111,[0,0],0)
+SLD = Pitch("Slider","Breaking",84.65,2.89,0.357,0.76,[1,5],0)
+CRV = Pitch("Curveball","Breaking",78.72,3.28,0.320,0.075,[6,2],0)
+TSC = Pitch("12-6 Curveball","Breaking",75.72,3.28,0.320,0.075,[7,0],0)
+SLV = Pitch("Slurve","Breaking",70.60,4.16,0.261,0.069,[4,4],0)
+SCR = Pitch("Screwball","Breaking",73.41,4.18,0.371,0.091,[6,-2],1)
+FOR = Pitch("Forkball","Breaking",82.48,3.41,0.287,0.097,[4,0],0)
+KCV = Pitch("Knuckle-Curve","Breaking",79.64,2.98,0.297,0.110,[4,1],0)
+KNB = Pitch("Knuckleball","Breaking",71.92,4.22,0.223,0.028,[0,0],0)
 
 pitch_dictionary = {}
 pitch_dictionary[0] = FSM
@@ -92,162 +93,191 @@ def CatcherCall(Catcher_Call_Skill,Batter_Hand,Pitcher_Arsenal,Pitcher_Hand,coun
     call_rating = SkillConvert(Catcher_Call_Skill,0)
     print(call_rating)
 
-    ##determine what pitch to throw
-    pitch_pick = random.choice(Pitcher_Arsenal)
-    print(pitch_pick)
-    pitch_call = pitch_dictionary[pitch_pick]
-    pitch_call_name = pitch_call.name
-    print(pitch_call_name)
-    pitch_type = pitch_call.group
-    if count[0] == 3: #strike needed
-        if pitch_type != "Fastball": ##rerolls non-fastballs
-            if call_rating >= 75: #high value demands fastball if possible
-                while True:
-                    has_fastball = False
-                    for x in Pitcher_Arsenal:
-                        if x.group == "Fastball":
-                            has_fastball = True
-                    if has_fastball == False:
-                        break
-                    pitch_call = random.choice(Pitcher_Arsenal)
-                    if pitch_call.group == "Fastball":
-                        break
-            elif 75 > call_rating >= 35: #rerolls once
-                pitch_call = random.choice(Pitcher_Arsenal)
-            ##34 and below keeps original non-fastball choice
+    if call_rating >= 40: ##Catchers separate pitches into types
+        fastballs = []
+        breaking_balls = []
+        offspeed = []
+        for x in Pitcher_Arsenal:
+            pitch_type = pitch_dictionary[x].group
+            if pitch_type == "Fastball":
+                fastballs.append(x)
+            elif pitch_type == "Breaking":
+                breaking_balls.append(x)
+            elif pitch_type == "Offspeed":
+                offspeed.append(x)
+            else:
+                print("Pitch type error during Catcher Call")
+        if not offspeed:
+            offspeed = breaking_balls[:]
+        if not breaking_balls:
+            breaking_balls = offspeed[:]
 
-    ##determine where to throw it
-    if call_rating < 10: ##really bad catchers
-        location_roll = random.choice(pitch_zone)
-        location = PitchZone(location_roll)
-    elif 10 <= call_rating < 25: ##bad catchers
-        if count[0] >= 3: ##near the zone
-            location_roll = random.choice(wide_strike_zone)
-            location = PitchZone(location_roll)
-        else: ##anywhere
-            location_roll = random.choice(pitch_zone)
-            location = PitchZone(location_roll)
-    elif 25 <= call_rating < 40: ##below average
-        if count[0] >= 3: ##in the strike zone
+    if call_rating < 0: ##Very worst
+        pitch_pick = random.choice(Pitcher_Arsenal) ##Picks random pitch
+        location_roll = random.choice(pitch_zone) ##Throw it anywhere
+    elif 0 <= call_rating < 10: ##Very Bad
+        pitch_pick = random.choice(Pitcher_Arsenal) ##Picks random pitch
+        random_roll = random.randint(0,4) ##Knows there's a strikezone
+        if random_roll == 4: ##Doesn't know exactly where it is.
             location_roll = random.choice(strike_zone)
-            location = PitchZone(location_roll)
-        elif count[1] >= 2:
-            location_roll = random.choice(wide_strike_zone)
-            location = PitchZone(location_roll)
-        else:
-            location_roll = random.choice(pitch_zone)
-            location = PitchZone(location_roll)
-    elif 40 <= call_rating < 60: ##average
-        if count[0] >= 3: ##get it over strike
+        elif random_roll == 3 or random_roll == 1:
             location_roll = random.choice(tight_strike_zone)
-            location = PitchZone(location_roll)
-        elif count[0] == 2 and count[0] == 0: ##get it over strike
-            location_roll = random.choice(tight_strike_zone)
-            location = PitchZone(location_roll)
-        elif count[1] >= 2: ##make them swing
-            location_roll = random.choice(strike_zone)
-            location = PitchZone(location)
-        else: ##near the zone
-            location_roll = random.choice(wide_strike_zone)
-            location = PitchZone(location_roll)
-    elif 60 <= call_rating < 75: ##above average
-        call_roll = random.randint(0,2)
-        if count[0] == 3:
-            location_roll = random.choice(tight_strike_zone)
-            location = PitchZone(location_roll)
-        elif count[0] == 0 and count[1] >= 1: ##ahead in the count
-            if count[1] == 2:
-                if call_roll == 0: ##try to get them napping on an easy 0-2 ball
-                    location_roll = random.choice(strike_zone)
-                    location = PitchZone(location_roll)
-                else: ##possibly get them to swing
-                    location_roll = random.choice(wide_strike_zone)
-                    location = PitchZone(location_roll)
-            else:
-                if call_roll == 0: ##pitch off
-                    location_roll = random.choice(ball_zone)
-                    location = PitchZone(location_roll)
-                else:
-                    location_roll = random.choice(wide_strike_zone)
-                    location = PitchZone(location_roll)
         else:
             location_roll = random.choice(wide_strike_zone)
-            location = PitchZone(location_roll)
-    elif 75 <= call_rating < 90: ##great
-        call_roll = random.randint(0,2)
-        if count[0] == 3:
-            if count[1] == 2: ##full-count
-                if call_roll == 2: ##chance to try and nibble edge/make them swing
-                    location_roll = random.choice(strike_zone)
-                    location = PitchZone(location_roll)
-                else:
-                    location_roll = random.choice(tight_strike_zone)
-                    location = PitchZone(location_roll)
-            elif count[1] == 0: ##get over pitch
-                location_roll = random.choice(tight_strike_zone)
-                location = PitchZone(location_roll)
-            else:
-                location_roll = random.choice(strike_zone)
-                location = PitchZone(location_roll)
-        elif count[0] == 0 and count[1] >= 1: ##ahead in the count
-            if count[1] == 2:
-                if call_roll == 0: ##try to get them napping on an easy 0-2 ball
-                    location_roll = random.choice(strike_zone)
-                    location = PitchZone(location_roll)
-                else: ##possibly get them to swing
-                    location_roll = random.choice(wide_strike_zone)
-                    location = PitchZone(location_roll)
-            else:
-                if call_roll == 0: ##pitch off
-                    location_roll = random.choice(ball_zone)
-                    location = PitchZone(location_roll)
-                else:
-                    location_roll = random.choice(wide_strike_zone)
-                    location = PitchZone(location_roll)
+    elif 10 <= call_rating < 25: ##Bad
+        pitch_pick = random.choice(Pitcher_Arsenal) ##Picks random pitch
+        if count[0] >= 3: ##Tries to avoid a walk
+            location_roll = random.choice(tight_strike_zone)
         else:
             location_roll = random.choice(strike_zone)
-            location = PitchZone(location_roll)
-    elif 90 <= call_rating <= 100: ##elite
-        call_roll = random.randint(0,2)
-        if count[0] == 3:
-            if count[1] == 2: ##full-count
-                if call_roll == 2: ##chance to try and nibble edge/make them swing
-                    location_roll = random.choice(strike_zone_edges)
-                    location = PitchZone(location_roll)
-                else:
-                    location_roll = random.choice(strike_zone)
-                    location = PitchZone(location_roll)
-            elif count[1] == 0: ##get over pitch
-                location_roll = random.choice(tight_strike_zone)
-                location = PitchZone(location_roll)
-            else:
-                location_roll = random.choice(strike_zone)
-                location = PitchZone(location_roll)
-        elif count[0] == 0 and count[1] >= 1: ##ahead in the count
-            if count[1] == 2:
-                if call_roll == 0: ##try to get them napping on an easy 0-2 ball
-                    location_roll = random.choice(strike_zone)
-                    location = PitchZone(location_roll)
-                elif call_roll == 1: ##try to make them swing
-                    location_roll = random.choice(strike_zone_edges)
-                    location = PitchZone(location_roll)
-                else: ##throw it away
-                    location_roll = random.choice(ball_zone)
-                    location = PitchZone(location_roll)
-            else:
-                if call_roll == 0: ##pitch off
-                    location_roll = random.choice(ball_zone)
-                    location = PitchZone(location_roll)
-                else:
-                    location_roll = random.choice(strike_zone_edges)
-                    location = PitchZone(location_roll)
+
+    elif 25 <= call_rating < 40: ##Below Average
+        if count[0] >= 3: ##Tries to avoid a walk
+            location_roll = random.choice(tight_strike_zone)
+            pitch_pick = random.choice(fastballs)
         else:
-            location_roll = random.choice(strike_zone_edges)
-            location = PitchZone(location_roll)
+            pitch_pick = random.choice(Pitcher_Arsenal)
+            location_roll = random.choice(strike_zone)
+    elif 40 <= call_rating < 60: ##Average
+        if count[0] >= count[1]: ##Uses fastballs when behind in count
+            pitch_pick = random.choice(fastballs)
+        else:
+            pitch_pick = random.choice(Pitcher_Arsenal)
+        if count[0] >= 3:
+            location_roll = random.choice(tight_strike_zone)
+        else:
+            location_roll = random.choice(strike_zone)
+
+    elif 60 <= call_rating < 75: ##Above Average
+        random_roll = random.randint(0,4)
+        if count[1] > count[0]: ##Ahead in count
+            if random_roll == 0: ##Prefers breaking/offspeed
+                pitch_pick = random.choice(fastballs)
+            elif 1 <= random_roll < 3:
+                pitch_pick = random.choice(breaking_balls)
+            elif 3 <= random_roll <= 4:
+                pitch_pick = random.choice(offspeed)
+        elif count[0] == 3: ##Avoids Walk
+            pitch_pick = random.choice(fastballs)
+        elif count[0] >= count[1]: ##Behind in the count
+            if random_roll <= 2: ##Prefers Fastballs
+                pitch_pick = random.choice(fastballs)
+            elif random_roll == 3:
+                pitch_pick = random.choice(breaking_balls)
+            elif random_roll == 4:
+                pitch_pick = random.choice(offspeed)
+        else: ##Picks at random to avoid errors
+            pitch_pick = random.choice(Pitcher_Arsenal)
+        if count[0] >= 3: ##Avoids walk
+            location_roll = random.choice(tight_strike_zone)
+        elif count[1] > count[0]: ##May fish for a swinging strike when ahead
+            location_roll = random.choice(wide_strike_zone)
+        else:
+            location_roll = random.choice(strike_zone)
+    elif 75 <= call_rating < 90: ##Good
+        random_roll = random.randint(0,4)
+        if count[1] > count[0]: ##Ahead in count
+            if random_roll == 0: ##Prefers breaking/offspeed
+                pitch_pick = random.choice(fastballs)
+            elif 1 <= random_roll < 3:
+                pitch_pick = random.choice(breaking_balls)
+            elif 3 <= random_roll <= 4:
+                pitch_pick = random.choice(offspeed)
+        elif count[0] == 3: ##Avoids Walk
+            pitch_pick = random.choice(fastballs)
+        elif count[0] >= count[1]: ##Behind in the count
+            if random_roll <= 2: ##Prefers Fastballs
+                pitch_pick = random.choice(fastballs)
+            elif random_roll == 3:
+                pitch_pick = random.choice(breaking_balls)
+            elif random_roll == 4:
+                pitch_pick = random.choice(offspeed)
+        else: ##Picks at random to avoid errors
+            pitch_pick = random.choice(Pitcher_Arsenal)
+        if count[0] >= 3: ##Avoids walk
+            call_zone = strike_zone[:]
+        elif count[1] > count[0]: ##Ahead in count
+            call_zone = strike_zone_edges[:]
+        else:
+            call_zone = strike_zone[:]
+        pitch_type = pitch_dictionary[pitch_pick].group
+        if pitch_type == "Breaking" or pitch_type == "Offspeed":
+            for x in call_zone: ##Non-FB target bottom half of zone
+                coords = PitchZone(x)
+                if coords[0] <= 0:
+                    call_zone.remove(x)
+        location_roll = random.choice(call_zone)
+    elif 90 <= call_rating < 100: ##Very Good
+        random_roll = random.randint(0,4)
+        if count[1] > count[0]: ##Ahead in count
+            if random_roll == 0: ##Prefers breaking/offspeed
+                pitch_pick = random.choice(fastballs)
+            elif 1 <= random_roll < 3:
+                pitch_pick = random.choice(breaking_balls)
+            elif 3 <= random_roll <= 4:
+                pitch_pick = random.choice(offspeed)
+        elif count[0] == 3: ##Avoids Walk
+            pitch_pick = random.choice(fastballs)
+        elif count[0] >= count[1]: ##Behind in the count
+            if random_roll <= 2: ##Prefers Fastballs
+                pitch_pick = random.choice(fastballs)
+            elif random_roll == 3:
+                pitch_pick = random.choice(breaking_balls)
+            elif random_roll == 4:
+                pitch_pick = random.choice(offspeed)
+        else: ##Picks at random to avoid errors
+            pitch_pick = random.choice(Pitcher_Arsenal)
+        if count[0] >= 3: ##Avoids walk
+            call_zone = strike_zone[:]
+        elif count[1] > count[0]: ##Ahead in count
+            call_zone = strike_zone_edges[:]
+        else:
+            call_zone = strike_zone[:]
+        pitch_type = pitch_dictionary[pitch_pick].group
+        if pitch_type == "Breaking" or pitch_type == "Offspeed":
+            for x in call_zone: ##Non-FB target bottom third of zone
+                coords = PitchZone(x)
+                if coords[0] <= 1:
+                    call_zone.remove(x)
+        location_roll = random.choice(call_zone)
+    elif 100 <= call_rating: ##Elite
+        random_roll = random.randint(0,4)
+        if count[1] > count[0]: ##Ahead in count
+            if random_roll == 0: ##Prefers breaking/offspeed
+                pitch_pick = random.choice(fastballs)
+            elif 1 <= random_roll < 3:
+                pitch_pick = random.choice(breaking_balls)
+            elif 3 <= random_roll <= 4:
+                pitch_pick = random.choice(offspeed)
+        elif count[0] == 3: ##Avoids Walk
+            pitch_pick = random.choice(fastballs)
+        elif count[0] >= count[1]: ##Behind in the count
+            if random_roll <= 2: ##Prefers Fastballs
+                pitch_pick = random.choice(fastballs)
+            elif random_roll == 3:
+                pitch_pick = random.choice(breaking_balls)
+            elif random_roll == 4:
+                pitch_pick = random.choice(offspeed)
+        else: ##Picks at random to avoid errors
+            pitch_pick = random.choice(Pitcher_Arsenal)
+        if count[0] >= 3: ##Avoids walk
+            call_zone = strike_zone[:]
+        else:
+            call_zone = strike_zone_edges[:]
+        pitch_type = pitch_dictionary[pitch_pick].group
+        for x in call_zone: ##Makes several adjustments
+            coords = PitchZone(x)
+            if pitch_type == "Breaking" or pitch_type == "Offspeed":  ##Non-FB target bottom range of zone
+                if coords[0] <= 2:
+                    call_zone.remove(x)
+            if -2 < coords[0] < 2 and -2 < coords[1] < 2: ##Nevers calls it over the middle
+                call_zone.remove(x)
+        location_roll = random.choice(call_zone)
     else:
-        print("Call Rating Impossiblity")
-
-    return [pitch_call_name,location]
+        print("Call Rating Error")
+    location = PitchZone(location_roll)
+    pitch_call_name = pitch_dictionary[pitch_pick].name
+    return [pitch_pick,pitch_call_name,location]
     
 def PitchLocation(strikes,balls,pitch_con,pitch_movement,pitch_break): ##Determining where the Pitcher throws the ball
     secondary_list = list(range(9))
